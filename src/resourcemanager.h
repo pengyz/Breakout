@@ -6,6 +6,7 @@
 #include <string>
 #include "texture2d.h"
 #include "shader.h"
+#include "types.h"
 
 
 // A static singleton ResourceManager class that hosts several
@@ -27,11 +28,12 @@ public:
     }
     void setSearchPath(const std::vector<std::string>& paths);
     void addSearchPath(const std::string& path);
-    std::shared_ptr<Shader> loadShader(const GLchar *vShaderFile, const GLchar* fShaderFile, const GLchar* pShaderFile, const std::string& name);
-    std::shared_ptr<Shader> getShader(const std::string& name);
-    std::shared_ptr<Texture2D> loadTexture(const GLchar* file, GLboolean alpha, const std::string& name);
-    std::shared_ptr<Texture2D> getTexture(const std::string& name);
+    ShaderPtr loadShader(const GLchar *vShaderFile, const GLchar* fShaderFile, const GLchar* pShaderFile, const std::string& name);
+    ShaderPtr getShader(const std::string& name);
+    Texture2DPtr loadTexture(const GLchar* file, GLboolean alpha, const std::string& name);
+    Texture2DPtr getTexture(const std::string& name);
     void clear();
+    std::string solveResourcePath(const std::string& path);
 
 private:
     ResourceManager();
@@ -39,5 +41,4 @@ private:
     Texture2D* loadTextureFromFile(const GLchar *file, GLboolean alpha);
     static ResourceManager* m_instance;
     std::vector<std::string> m_searchPath;
-    std::string solveResourcePath(const std::string& path);
 };

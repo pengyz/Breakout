@@ -77,5 +77,12 @@ add_executable(Breakout
 	src/glad/src/glad.c
 	src/spriterenderer.h
 	src/spriterenderer.cpp
+	src/gameobject.h
+	src/gameobject.cpp
+	src/gamelevel.h
+	src/gamelevel.cpp
+	src/types.h
+	src/ballobject.h
+	src/ballobject.cpp
 )
 target_link_libraries(Breakout ${HUNTER_LIBS})

@@ -27,13 +27,13 @@ std::shared_ptr<Shader> ResourceManager::getShader(const std::string & name)
     return m_shaderMap[name];
 }
 
-std::shared_ptr<Texture2D> ResourceManager::loadTexture(const GLchar * file, GLboolean alpha, const std::string & name)
+Texture2DPtr ResourceManager::loadTexture(const GLchar * file, GLboolean alpha, const std::string & name)
 {
     m_textureMap[name] = std::shared_ptr<Texture2D>(loadTextureFromFile(file, alpha));
     return m_textureMap[name];
 }
 
-std::shared_ptr<Texture2D> ResourceManager::getTexture(const std::string & name)
+Texture2DPtr ResourceManager::getTexture(const std::string & name)
 {
     if (m_textureMap.find(name) == m_textureMap.end())
         return std::shared_ptr<Texture2D>(nullptr);

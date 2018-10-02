@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-SpriteRenderer::SpriteRenderer(std::shared_ptr<Shader> shader)
+SpriteRenderer::SpriteRenderer(ShaderPtr shader)
 {
     m_shader = shader;
     this->initRenderData();
@@ -17,7 +17,7 @@ SpriteRenderer::~SpriteRenderer()
     glDeleteVertexArrays(1, &m_quadVAO);
 }
 
-void SpriteRenderer::DrawSprite(std::shared_ptr<Texture2D> texture, glm::vec2 position, glm::vec2 size, GLfloat rotate, glm::vec3 color)
+void SpriteRenderer::DrawSprite(Texture2DPtr texture, glm::vec2 position, glm::vec2 size, GLfloat rotate, glm::vec3 color)
 {
     // Prepare transformations
     m_shader->use();

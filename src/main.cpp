@@ -44,6 +44,10 @@ int main(int argc, char** argv)
     auto mainWindow = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Breakout", nullptr, nullptr);
     assert(mainWindow);
     glfwMakeContextCurrent(mainWindow);
+    glfwSetFramebufferSizeCallback(mainWindow, [](GLFWwindow* pWindow, int width, int height) {
+        glViewport(0, 0, width, height);
+    });
+
     if (!initGlad()) {
         std::cout << "initGlad failed !";
         glfwTerminate();
