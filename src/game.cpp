@@ -84,6 +84,7 @@ void Game::ProcessInput(GLfloat dt)
 void Game::Update(GLfloat dt)
 {
     m_ball->move(dt, m_width);
+    doCollisions();
 }
 
 void Game::Render()
@@ -95,4 +96,43 @@ void Game::Render()
         m_player->Draw(m_renderer);
         m_ball->Draw(m_renderer);
     }
+}
+
+void Game::doCollisions()
+{
+    for (auto& box : m_levels[m_currLevel]->m_bricks) {
+        if (!box->m_isDestroyed) {
+            if (checkCollisionRadius(m_ball, box)) {
+                if (!box->m_isSolid) {
+                    box->m_isDestroyed = GL_TRUE;
+                }
+            }
+        }
+    }
+}
+
+bool Game::checkCollisionAABB(GameObjectPtr first, GameObjectPtr second)
+{
+    bool isCollisionX = first->m_position.x + first->m_size.x >= second->m_position.x &&
+        first->m_position.x < second->m_position.x + second->m_size.x;
+    bool isCollisionY = first->m_position.y + first->m_size.y >= second->m_position.y &&
+        first->m_position.y < second->m_position.y + second->m_size.y;
+    return isCollisionX && isCollisionY;
+}
+
+bool Game::checkCollisionRadius(BallObjectPtr one, GameObjectPtr two)
+{
+    // 获取圆的中心 
+    glm::vec2 center(one->m_position + one->m_radius);
+    // 计算AABB的信息（中心、半边长）
+    glm::vec2 aabb_half_extents(two->m_size.x / 2, two->m_size.y / 2);
+    glm::vec2 aabb_center(two->m_position.x + aabb_half_extents.x, two->m_position.y + aabb_half_extents.y);
+    // 获取两个中心的差矢量
+    glm::vec2 difference = center - aabb_center;
+    glm::vec2 clamped = glm::clamp(difference, -aabb_half_extents, aabb_half_extents);
+    // AABB_center加上clamped这样就得到了碰撞箱上距离圆最近的点closest
+    glm::vec2 closest = aabb_center + clamped;
+    // 获得圆心center和最近点closest的矢量并判断是否 length <= radius
+    difference = closest - center;
+    return glm::length(difference) < one->m_radius;
 }

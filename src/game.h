@@ -28,6 +28,9 @@ public:
     GameState getState() { return m_state; }
     void setState(GameState state) { m_state = state; }
     void setKey(int keyId, bool isPressed) { m_keys[keyId] = isPressed; }
+    void doCollisions();
+    bool checkCollisionAABB(GameObjectPtr first, GameObjectPtr second);
+    bool checkCollisionRadius(BallObjectPtr first, GameObjectPtr second);
 
 private:
     GameState m_state;
