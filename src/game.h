@@ -11,6 +11,14 @@ enum GameState {
     GAME_WIN,
 };
 
+enum Direction {
+    UP,
+    RIGHT,
+    DOWN,
+    LEFT
+};
+using Collision = std::tuple<GLboolean, enum Direction, glm::vec2>;
+
 class Game
 {
 public:
@@ -30,7 +38,10 @@ public:
     void setKey(int keyId, bool isPressed) { m_keys[keyId] = isPressed; }
     void doCollisions();
     bool checkCollisionAABB(GameObjectPtr first, GameObjectPtr second);
-    bool checkCollisionRadius(BallObjectPtr first, GameObjectPtr second);
+    Collision checkCollisionRadius(BallObjectPtr first, GameObjectPtr second);
+    Direction VectorDirection(glm::vec2 target);
+    void resetLevel();
+    void resetPlayer();
 
 private:
     GameState m_state;

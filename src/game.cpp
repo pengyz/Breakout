@@ -3,6 +3,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <GLFW/glfw3.h>
+#include <tuple>
+#include <algorithm>
 
 #include "resourcemanager.h"
 #include "spriterenderer.h"
@@ -83,13 +85,12 @@ void Game::ProcessInput(GLfloat dt)
 
 void Game::Update(GLfloat dt)
 {
-    m_ball->move(dt, m_width);
     doCollisions();
+    m_ball->move(dt, m_width);
 }
 
 void Game::Render()
 {
-    //m_renderer->DrawSprite(ResourceManager::get()->getTexture("face"), glm::vec2(200, 200), glm::vec2(300, 400), 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
     if (m_state == GAME_ACTIVE) {
         m_renderer->DrawSprite(ResourceManager::get()->getTexture("background"), glm::vec2(0.f, 0.f), glm::vec2(m_width, m_height), 0.f);
         m_levels[m_currLevel]->Draw(m_renderer);
@@ -102,12 +103,52 @@ void Game::doCollisions()
 {
     for (auto& box : m_levels[m_currLevel]->m_bricks) {
         if (!box->m_isDestroyed) {
-            if (checkCollisionRadius(m_ball, box)) {
+            auto collision = checkCollisionRadius(m_ball, box);
+            if (std::get<0>(collision)) {
                 if (!box->m_isSolid) {
                     box->m_isDestroyed = GL_TRUE;
                 }
+                auto dir = std::get<1>(collision);
+                auto diffVec = std::get<2>(collision);
+                if (dir == LEFT || dir == RIGHT) {
+                    m_ball->m_velocity.x = -m_ball->m_velocity.x;
+                    auto pentration = m_ball->m_radius - std::abs(diffVec.x);
+                    if (dir == LEFT) {
+                        m_ball->m_position.x += pentration;
+                    } else {
+                        m_ball->m_position.x -= pentration;
+                    }
+                } else {
+                    m_ball->m_velocity.y = -m_ball->m_velocity.y;
+                    auto pentration = m_ball->m_radius - std::abs(diffVec.y);
+                    if (dir == UP) {
+                        m_ball->m_position.y -= pentration;
+                    } else {
+                        m_ball->m_position.y += pentration;
+                    }
+                }
+                //break;
             }
         }
+    }
+    //check paddle collision
+    Collision result = checkCollisionRadius(m_ball, m_player);
+    if (!m_ball->m_stuck && std::get<0>(result)) {
+        // 检查碰到了挡板的哪个位置，并根据碰到哪个位置来改变速度
+        GLfloat centerBoard = m_player->m_position.x + m_player->m_size.x / 2;
+        GLfloat distance = (m_ball->m_position.x + m_ball->m_radius) - centerBoard;
+        GLfloat percentage = distance / (m_player->m_size.x / 2);
+        // 依据结果移动
+        GLfloat strength = 2.0f;
+        glm::vec2 oldVelocity = m_ball->m_velocity;
+        m_ball->m_velocity.x = INITIAL_BALL_VELOCITY.x * percentage * strength;
+        m_ball->m_velocity.y = -1 * std::abs(m_ball->m_velocity.y);
+        m_ball->m_velocity = glm::normalize(m_ball->m_velocity) * glm::length(oldVelocity);
+    }
+    //check ball fallen
+    if (m_ball->m_position.y > m_height) {
+        resetLevel();
+        resetPlayer();
     }
 }
 
@@ -120,7 +161,7 @@ bool Game::checkCollisionAABB(GameObjectPtr first, GameObjectPtr second)
     return isCollisionX && isCollisionY;
 }
 
-bool Game::checkCollisionRadius(BallObjectPtr one, GameObjectPtr two)
+Collision Game::checkCollisionRadius(BallObjectPtr one, GameObjectPtr two)
 {
     // 获取圆的中心 
     glm::vec2 center(one->m_position + one->m_radius);
@@ -134,5 +175,38 @@ bool Game::checkCollisionRadius(BallObjectPtr one, GameObjectPtr two)
     glm::vec2 closest = aabb_center + clamped;
     // 获得圆心center和最近点closest的矢量并判断是否 length <= radius
     difference = closest - center;
-    return glm::length(difference) < one->m_radius;
+    bool bCollision = glm::length(difference) <= one->m_radius;
+    return std::make_tuple(bCollision ? GL_TRUE : GL_FALSE, bCollision ? VectorDirection(difference) : UP, bCollision ? difference : glm::vec2(0.f, 0.f));
+}
+
+Direction Game::VectorDirection(glm::vec2 target)
+{
+    glm::vec2 compass[] = {
+        glm::vec2(0.0f, 1.0f),  // 上
+        glm::vec2(1.0f, 0.0f),  // 右
+        glm::vec2(0.0f, -1.0f), // 下
+        glm::vec2(-1.0f, 0.0f)  // 左
+    };
+    GLfloat max = 0.0f;
+    GLuint best_match = -1;
+    for (GLuint i = 0; i < 4; i++) {
+        GLfloat dot_product = glm::dot(glm::normalize(target), compass[i]);
+        if (dot_product > max) {
+            max = dot_product;
+            best_match = i;
+        }
+    }
+    return (Direction)best_match;
+}
+
+void Game::resetLevel()
+{
+    m_levels[m_currLevel]->reset();
+}
+
+void Game::resetPlayer()
+{
+    m_player->m_position = glm::vec2(this->m_width / 2 - PLAYER_SIZE.x / 2, this->m_height - PLAYER_SIZE.y);
+    m_ball->m_position = m_player->m_position + glm::vec2(PLAYER_SIZE.x / 2 - BALL_RADIUS, -BALL_RADIUS * 2);
+    m_ball->m_stuck = true;
 }

@@ -18,6 +18,7 @@ public:
     void Draw(std::weak_ptr<SpriteRenderer> renderer);
     //ÊÇ·ñÍê³É
     bool isCompleted();
+    void reset();
 private:
     void init(std::vector<std::vector<int>> tileData, int levelWidth, int levelHeight);
 };

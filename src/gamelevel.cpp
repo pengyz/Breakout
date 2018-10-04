@@ -88,3 +88,10 @@ bool GameLevel::isCompleted()
     }
     return true;
 }
+
+void GameLevel::reset()
+{
+    for (auto& tile : m_bricks) {
+        tile->m_isDestroyed = false;
+    }
+}

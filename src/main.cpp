@@ -44,6 +44,7 @@ int main(int argc, char** argv)
     auto mainWindow = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Breakout", nullptr, nullptr);
     assert(mainWindow);
     glfwMakeContextCurrent(mainWindow);
+    glfwSwapInterval(0);                //disable v-sync to get a better collision effect
     glfwSetFramebufferSizeCallback(mainWindow, [](GLFWwindow* pWindow, int width, int height) {
         glViewport(0, 0, width, height);
     });
@@ -74,7 +75,6 @@ int main(int argc, char** argv)
     GLfloat deltaTime = 0.0f;
     GLfloat lastFrame = 0.0f;
     Breakout.setState(GAME_ACTIVE);
-
     while (!glfwWindowShouldClose(mainWindow)) {
         GLfloat currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
